@@ -9,7 +9,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/liut/wisper"
+	"github.com/liut/wisper/server"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -92,8 +92,8 @@ func initConfig() {
 	}
 }
 
-func getConfig() *wisper.Config {
-	var config wisper.Config
+func getConfig() *server.Config {
+	var config server.Config
 	if err := viper.Unmarshal(&config); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: failed to unmarshal config: %v\n", err)
 		os.Exit(1)
@@ -128,8 +128,8 @@ func runStdioCommand(cmd *cobra.Command, args []string) {
 	runStdioServer()
 }
 
-func startHTTPServer(config *wisper.Config) {
-	server := wisper.NewWebSearchServer(*config)
+func startHTTPServer(config *server.Config) {
+	server := server.NewWebSearchServer(*config)
 	mcpServer := server.CreateMcpServer()
 
 	// Create handlers for different transport modes
@@ -177,11 +177,11 @@ func startHTTPServer(config *wisper.Config) {
 
 func runStdioServer() {
 	config := getConfig()
-	server := wisper.NewWebSearchServer(*config)
+	server := server.NewWebSearchServer(*config)
 	startStdioServer(server)
 }
 
-func startStdioServer(server *wisper.WebSearchServer) {
+func startStdioServer(server *server.WebSearchServer) {
 	mcpServer := server.CreateMcpServer()
 
 	fmt.Printf("Starting Wisper MCP server (stdio mode)...\n")
