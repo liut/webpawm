@@ -18,6 +18,7 @@ type Config struct {
 	DefaultEngine string `mapstructure:"default_engine" envconfig:"DEFAULT_ENGINE"`    // Default search engine
 	ListenAddr    string `mapstructure:"listen_addr" envconfig:"LISTEN_ADDR"`         // HTTP listen address
 	URIPrefix     string `mapstructure:"uri_prefix" envconfig:"URI_PREFIX"`           // URI prefix for HTTP endpoints
+	LogLevel      string `mapstructure:"log_level" envconfig:"LOG_LEVEL"`             // Log level: debug, info, warn, error (default: info)
 }
 
 // WebSearchServer represents the MCP web search server
