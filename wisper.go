@@ -409,7 +409,7 @@ func (s *WebSearchServer) CreateMcpServer() *mcp.Server {
 	}, nil)
 
 	// Add web_search tool
-	mcp.AddTool(server, &mcp.Tool{
+		mcp.AddTool(server, &mcp.Tool{
 		Name:        "web_search",
 		Description: "Search the web using various search engines (SearXNG, Arxiv, Google, Bing)",
 		InputSchema: map[string]any{
@@ -441,12 +441,13 @@ func (s *WebSearchServer) CreateMcpServer() *mcp.Server {
 			},
 			"required": []string{"query"},
 		},
-	}, func(ctx context.Context, req *mcp.CallToolRequest, params WebSearchParams) (*mcp.CallToolResult, error) {
-		return s.handleWebSearch(ctx, params)
+	}, func(ctx context.Context, req *mcp.CallToolRequest, params WebSearchParams) (*mcp.CallToolResult, any, error) {
+		result, err := s.handleWebSearch(ctx, params)
+		return result, nil, err
 	})
 
 	// Add multi_search tool
-	mcp.AddTool(server, &mcp.Tool{
+		mcp.AddTool(server, &mcp.Tool{
 		Name:        "multi_search",
 		Description: "Search across multiple search engines simultaneously",
 		InputSchema: map[string]any{
@@ -473,12 +474,13 @@ func (s *WebSearchServer) CreateMcpServer() *mcp.Server {
 			},
 			"required": []string{"query"},
 		},
-	}, func(ctx context.Context, req *mcp.CallToolRequest, params MultiSearchParams) (*mcp.CallToolResult, error) {
-		return s.handleMultiSearch(ctx, params)
+	}, func(ctx context.Context, req *mcp.CallToolRequest, params MultiSearchParams) (*mcp.CallToolResult, any, error) {
+		result, err := s.handleMultiSearch(ctx, params)
+		return result, nil, err
 	})
 
 	// Add smart_search tool
-	mcp.AddTool(server, &mcp.Tool{
+		mcp.AddTool(server, &mcp.Tool{
 		Name:        "smart_search",
 		Description: "Intelligently search the web with query optimization and result aggregation",
 		InputSchema: map[string]any{
@@ -500,8 +502,9 @@ func (s *WebSearchServer) CreateMcpServer() *mcp.Server {
 			},
 			"required": []string{"question"},
 		},
-	}, func(ctx context.Context, req *mcp.CallToolRequest, params SmartSearchParams) (*mcp.CallToolResult, error) {
-		return s.handleSmartSearch(ctx, params)
+	}, func(ctx context.Context, req *mcp.CallToolRequest, params SmartSearchParams) (*mcp.CallToolResult, any, error) {
+		result, err := s.handleSmartSearch(ctx, params)
+		return result, nil, err
 	})
 
 	return server
