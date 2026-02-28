@@ -287,7 +287,7 @@ func loggingMiddleware(logger *slog.Logger, next http.Handler) http.Handler {
 			"method", r.Method,
 			"path", r.URL.Path,
 			"status", wrapped.statusCode,
-			"duration", time.Since(start).Milliseconds(),
+			"duration", time.Since(start).String(),
 			"client", r.RemoteAddr,
 		)
 	})
