@@ -180,6 +180,7 @@ func runGenCfgCommand(cmd *cobra.Command, args []string) {
   "google_api_key": "",
   "google_cx": "",
   "bing_api_key": "",
+  "brave_api_key": "",
   "max_results": 10,
   "default_engine": "",
   "listen_addr": "localhost:8080",
@@ -243,6 +244,7 @@ func startHTTPServer(config *server.Config) {
 	googleEnabled := config.GoogleAPIKey != "" && config.GoogleCX != ""
 	fmt.Printf("  Google: %v\n", googleEnabled)
 	fmt.Printf("  Bing: %v\n", config.BingAPIKey != "")
+	fmt.Printf("  Brave: %v\n", config.BraveAPIKey != "")
 	fmt.Printf("  Max Results: %d\n", config.MaxResults)
 
 	if err := http.ListenAndServe(config.ListenAddr, handler); err != nil {

@@ -14,6 +14,7 @@ type Config struct {
 	GoogleAPIKey  string `mapstructure:"google_api_key" envconfig:"GOOGLE_API_KEY"`  // Google Custom Search API key
 	GoogleCX      string `mapstructure:"google_cx" envconfig:"GOOGLE_CX"`            // Google Search Engine ID
 	BingAPIKey    string `mapstructure:"bing_api_key" envconfig:"BING_API_KEY"`      // Bing Search API key
+	BraveAPIKey   string `mapstructure:"brave_api_key" envconfig:"BRAVE_API_KEY"`    // Brave Search API key
 	MaxResults    int    `mapstructure:"max_results" envconfig:"MAX_RESULTS"`         // Default max results (default: 10)
 	DefaultEngine string `mapstructure:"default_engine" envconfig:"DEFAULT_ENGINE"`    // Default search engine
 	ListenAddr    string `mapstructure:"listen_addr" envconfig:"LISTEN_ADDR"`         // HTTP listen address
@@ -40,6 +41,11 @@ func NewWebSearchServer(config Config) *WebSearchServer {
 	// Add Bing engine if configured
 	if config.BingAPIKey != "" {
 		engines["bing"] = engine.NewBingEngine(config.BingAPIKey)
+	}
+
+	// Add Brave engine if configured
+	if config.BraveAPIKey != "" {
+		engines["brave"] = engine.NewBraveEngine(config.BraveAPIKey)
 	}
 
 	// Add Bing CN engine (free, always available)
