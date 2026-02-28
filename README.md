@@ -4,7 +4,7 @@ Wisper is an MCP (Model Context Protocol) server that provides web search capabi
 
 ## Features
 
-- **Multiple Search Engines**: Supports SearXNG, Google, Bing, Bing CN (China), and Arxiv
+- **Multiple Search Engines**: Supports SearXNG, Google, Bing, Brave, Bing CN (China), and Arxiv
 - **Multiple Transport Modes**:
   - HTTP/SSE mode (via `wisper web` command)
   - Stdio mode (via `wisper` or `wisper std` command)
@@ -105,6 +105,7 @@ Create `~/.wisper/config.json`:
   "google_api_key": "your-api-key",
   "google_cx": "your-search-engine-id",
   "bing_api_key": "your-bing-api-key",
+  "brave_api_key": "your-brave-api-key",
   "max_results": 10,
   "default_engine": "searchxng",
   "listen_addr": "localhost:8080",
@@ -121,6 +122,7 @@ Create `~/.wisper/config.json`:
 | WISPER_GOOGLE_API_KEY | Google Custom Search API key |
 | WISPER_GOOGLE_CX | Google Search Engine ID |
 | WISPER_BING_API_KEY | Bing Search API key |
+| WISPER_BRAVE_API_KEY | Brave Search API key |
 | WISPER_MAX_RESULTS | Default max results |
 | WISPER_DEFAULT_ENGINE | Default search engine |
 | WISPER_LISTEN_ADDR | HTTP listen address |
