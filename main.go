@@ -49,7 +49,7 @@ It supports multiple search engines including SearXNG, Google, Bing, and Arxiv.`
 		Run:   runWebCommand,
 	}
 	webCmd.Flags().StringP("listen", "l", "", "HTTP listen address (e.g., localhost:8087)")
-	viper.BindPFlag("listen_addr", webCmd.Flags().Lookup("listen"))
+	_ = viper.BindPFlag("listen_addr", webCmd.Flags().Lookup("listen"))
 
 	// std subcommand
 	stdCmd := &cobra.Command{
@@ -119,7 +119,7 @@ func getConfig() *server.Config {
 
 func runWebCommand(cmd *cobra.Command, args []string) {
 	// Bind flag to viper
-	viper.BindPFlag("listen_addr", cmd.Flags().Lookup("listen"))
+	_ = viper.BindPFlag("listen_addr", cmd.Flags().Lookup("listen"))
 
 	config := getConfig()
 	// Ensure URIPrefix and LogLevel are loaded from viper (in case they were set via env var)
@@ -169,7 +169,7 @@ func runGenCfgCommand(cmd *cobra.Command, args []string) {
 		fmt.Printf("Config file already exists: %s\n", outputPath)
 		fmt.Print("Overwrite? (y/N): ")
 		var confirm string
-		fmt.Scanln(&confirm)
+		_, _ = fmt.Scanln(&confirm)
 		if strings.ToLower(confirm) != "y" {
 			fmt.Println("Aborted.")
 			os.Exit(0)

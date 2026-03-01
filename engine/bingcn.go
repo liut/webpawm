@@ -84,10 +84,3 @@ func (b *BingCNEngine) Search(ctx context.Context, query SearchQuery) ([]SearchR
 
 	return results, nil
 }
-
-// parseHTMLResults extracts search results from Bing CN HTML (placeholder)
-func (b *BingCNEngine) parseHTMLResults(html string, maxResults int) []SearchResult {
-	// Simplified HTML parsing placeholder
-	// In production, use goquery or similar for proper HTML parsing
-	return []SearchResult{}
-}
