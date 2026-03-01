@@ -20,6 +20,7 @@ import (
 
 var (
 	cfgFile string
+	version = "dev"
 )
 
 func main() {
@@ -30,6 +31,7 @@ func main() {
 		Short: "MCP web search server",
 		Long: `Wisper is an MCP server that provides web search capabilities.
 It supports multiple search engines including SearXNG, Google, Bing, and Arxiv.`,
+		Version: version,
 		Run: func(cmd *cobra.Command, args []string) {
 			// Default: run stdio mode
 			runStdioServer()
