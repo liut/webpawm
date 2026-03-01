@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"slices"
 	"time"
 
@@ -40,6 +41,7 @@ func (s *WebSearchServer) handleWebSearch(ctx context.Context, params WebSearchP
 		ArxivCategory: params.ArxivCategory,
 	})
 	if err != nil {
+		slog.Warn("search failed", "engine", engineName, "query", params.Query, "error", err)
 		return nil, fmt.Errorf("search failed: %w", err)
 	}
 

@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"compress/gzip"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -69,8 +70,17 @@ func (b *BraveEngine) Search(ctx context.Context, query SearchQuery) ([]SearchRe
 		return nil, fmt.Errorf("Brave search failed: %d - %s", resp.StatusCode, string(body))
 	}
 
+	body := resp.Body
+	if resp.Header.Get("Content-Encoding") == "gzip" {
+		body, err = gzip.NewReader(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create gzip reader: %w", err)
+		}
+		defer body.Close()
+	}
+
 	var result braveSearchResponse
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := json.NewDecoder(body).Decode(&result); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 

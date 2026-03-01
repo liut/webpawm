@@ -268,7 +268,7 @@ func setupLogger(level string) *slog.Logger {
 		slogLevel = slog.LevelInfo
 	}
 
-	return slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+	return slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slogLevel,
 	}))
 }
