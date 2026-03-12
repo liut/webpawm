@@ -11,7 +11,7 @@ import (
 // CreateMcpServer creates the MCP server with tools
 func (s *WebSearchServer) CreateMcpServer() *mcp.Server {
 	server := mcp.NewServer(&mcp.Implementation{
-		Name:    "wisper",
+		Name:    "webpawm",
 		Version: "1.0.0",
 	}, nil)
 
@@ -125,6 +125,6 @@ func (s *WebSearchServer) Run(addr string) error {
 		return mcpServer
 	}, nil)
 
-	fmt.Printf("Wisper MCP server starting on %s\n", addr)
+	fmt.Printf("Webpawm MCP server starting on %s\n", addr)
 	return http.ListenAndServe(addr, handler)
 }

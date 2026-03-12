@@ -8,10 +8,10 @@
                <key>https_proxy</key>
                <string>http://127.0.0.1:1080</string>
         </dict>
-        <key>Label</key><string>net.wisper.mcp-web</string>
+        <key>Label</key><string>net.webpawm.mcp-web</string>
         <key>ProgramArguments</key>
         <array>
-           	<string>/usr/local/bin/wisper</string>
+           	<string>/usr/local/bin/webpawm</string>
            	<string>web</string>
            	<string>--listen</string>
             <string>localhost:8087</string>
@@ -19,8 +19,8 @@
         <key>RunAtLoad</key>
         <true/>
         <key>StandardErrorPath</key>
-        <string>/tmp/wisper-mcp-web.err.log</string>
+        <string>/tmp/webpawm-mcp-web.err.log</string>
         <key>StandardOutPath</key>
-        <string>/tmp/wisper-mcp-web.out.log</string>
+        <string>/tmp/webpawm-mcp-web.out.log</string>
     </dict>
 </plist>

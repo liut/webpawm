@@ -1,4 +1,4 @@
-module github.com/liut/wisper
+module github.com/liut/webpawm
 
 go 1.24.0
 

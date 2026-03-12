@@ -43,29 +43,29 @@ jobs:
           VERSION: ${{ steps.version.outputs.VERSION }}
         run: |
           echo "version: $VERSION"
-          GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$VERSION" -o wisper .
-          mv wisper wisper-linux-amd64
-          GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.version=$VERSION" -o wisper .
-          mv wisper wisper-darwin-amd64
-          GOOS=darwin GOARCH=arm64 go build -ldflags "-X main.version=$VERSION" -o wisper .
-          mv wisper wisper-darwin-arm64
-          GOOS=windows GOARCH=amd64 go build -ldflags "-X main.version=$VERSION" -o wisper.exe .
-          mv wisper.exe wisper-windows-amd64.exe
+          GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$VERSION" -o webpawm .
+          mv webpawm webpawm-linux-amd64
+          GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.version=$VERSION" -o webpawm .
+          mv webpawm webpawm-darwin-amd64
+          GOOS=darwin GOARCH=arm64 go build -ldflags "-X main.version=$VERSION" -o webpawm .
+          mv webpawm webpawm-darwin-arm64
+          GOOS=windows GOARCH=amd64 go build -ldflags "-X main.version=$VERSION" -o webpawm.exe .
+          mv webpawm.exe webpawm-windows-amd64.exe
 
       - name: Package
         run: |
-          tar -cvJf wisper-linux-amd64-${{ steps.version.outputs.VERSION }}.tar.xz -C . wisper-linux-amd64
-          tar -cvJf wisper-darwin-amd64-${{ steps.version.outputs.VERSION }}.tar.xz -C . wisper-darwin-amd64
-          tar -cvJf wisper-darwin-arm64-${{ steps.version.outputs.VERSION }}.tar.xz -C . wisper-darwin-arm64
-          zip wisper-windows-amd64-${{ steps.version.outputs.VERSION }}.zip wisper-windows-amd64.exe
+          tar -cvJf webpawm-linux-amd64-${{ steps.version.outputs.VERSION }}.tar.xz -C . webpawm-linux-amd64
+          tar -cvJf webpawm-darwin-amd64-${{ steps.version.outputs.VERSION }}.tar.xz -C . webpawm-darwin-amd64
+          tar -cvJf webpawm-darwin-arm64-${{ steps.version.outputs.VERSION }}.tar.xz -C . webpawm-darwin-arm64
+          zip webpawm-windows-amd64-${{ steps.version.outputs.VERSION }}.zip webpawm-windows-amd64.exe
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            wisper-linux-amd64-*.tar.xz
-            wisper-darwin-amd64-*.tar.xz
-            wisper-darwin-arm64-*.tar.xz
-            wisper-windows-amd64-*.zip
+            webpawm-linux-amd64-*.tar.xz
+            webpawm-darwin-amd64-*.tar.xz
+            webpawm-darwin-arm64-*.tar.xz
+            webpawm-windows-amd64-*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

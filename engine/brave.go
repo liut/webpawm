@@ -57,7 +57,7 @@ func (b *BraveEngine) Search(ctx context.Context, query SearchQuery) ([]SearchRe
 	req.Header.Set("X-Subscription-Token", b.apiKey)
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Accept-Encoding", "gzip")
-	req.Header.Set("User-Agent", "wisper/1.0")
+	req.Header.Set("User-Agent", "webpawm/1.0")
 
 	resp, err := b.client.Do(req)
 	if err != nil {

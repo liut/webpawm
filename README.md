@@ -1,30 +1,30 @@
-# Wisper
+# Webpawm
 
-Wisper is an MCP (Model Context Protocol) server that provides web search capabilities with multiple search engine support.
+Webpawm is an MCP (Model Context Protocol) server that provides web search capabilities with multiple search engine support.
 
 ## Features
 
 - **Multiple Search Engines**: Supports SearXNG, Google, Bing, Brave, Bing CN (China), and Arxiv
 - **Multiple Transport Modes**:
-  - HTTP/SSE mode (via `wisper web` command)
-  - Stdio mode (via `wisper` or `wisper std` command)
+  - HTTP/SSE mode (via `webpawm web` command)
+  - Stdio mode (via `webpawm` or `webpawm std` command)
 - **Smart Search**: Intelligent query optimization with result aggregation
 - **Multi-Engine Search**: Search across multiple engines simultaneously
-- **Flexible Configuration**: Support for config file (~/.wisper/config.json) and environment variables
+- **Flexible Configuration**: Support for config file (~/.webpawm/config.json) and environment variables
 - **Access Logging**: Built-in slog-based HTTP access logging
 
 ## Installation
 
 ```bash
-go install github.com/liut/wisper@latest
+go install github.com/liut/webpawm@latest
 ```
 
 Or build from source:
 
 ```bash
-git clone https://github.com/liut/wisper.git
-cd wisper
-go build -o wisper .
+git clone https://github.com/liut/webpawm.git
+cd webpawm
+go build -o webpawm .
 ```
 
 ## Usage
@@ -34,7 +34,7 @@ go build -o wisper .
 Run as a local MCP tool:
 
 ```bash
-wisper
+webpawm
 ```
 
 ### HTTP/SSE Mode
@@ -42,7 +42,7 @@ wisper
 Start the web server:
 
 ```bash
-wisper web --listen localhost:8087
+webpawm web --listen localhost:8087
 ```
 
 The server provides two endpoints:
@@ -51,7 +51,7 @@ The server provides two endpoints:
 
 With URI prefix:
 ```bash
-wisper web --listen localhost:8087 --uri-prefix /api
+webpawm web --listen localhost:8087 --uri-prefix /api
 ```
 Endpoints become:
 - HTTP: `http://localhost:8087/api/mcp`
@@ -59,7 +59,7 @@ Endpoints become:
 
 ## MCP Tools
 
-Wisper provides three MCP tools:
+Webpawm provides three MCP tools:
 
 ### web_search
 
@@ -97,7 +97,7 @@ Intelligently search with query optimization and result aggregation.
 
 ### Config File
 
-Create `~/.wisper/config.json`:
+Create `~/.webpawm/config.json`:
 
 ```json
 {
@@ -118,16 +118,16 @@ Create `~/.wisper/config.json`:
 
 | Variable | Description |
 |----------|-------------|
-| WISPER_SEARCHXNG_URL | SearXNG base URL |
-| WISPER_GOOGLE_API_KEY | Google Custom Search API key |
-| WISPER_GOOGLE_CX | Google Search Engine ID |
-| WISPER_BING_API_KEY | Bing Search API key |
-| WISPER_BRAVE_API_KEY | Brave Search API key |
-| WISPER_MAX_RESULTS | Default max results |
-| WISPER_DEFAULT_ENGINE | Default search engine |
-| WISPER_LISTEN_ADDR | HTTP listen address |
-| WISPER_URI_PREFIX | URI prefix for endpoints |
-| WISPER_LOG_LEVEL | Log level: debug, info, warn, error |
+| WEBPAWM_SEARCHXNG_URL | SearXNG base URL |
+| WEBPAWM_GOOGLE_API_KEY | Google Custom Search API key |
+| WEBPAWM_GOOGLE_CX | Google Search Engine ID |
+| WEBPAWM_BING_API_KEY | Bing Search API key |
+| WEBPAWM_BRAVE_API_KEY | Brave Search API key |
+| WEBPAWM_MAX_RESULTS | Default max results |
+| WEBPAWM_DEFAULT_ENGINE | Default search engine |
+| WEBPAWM_LISTEN_ADDR | HTTP listen address |
+| WEBPAWM_URI_PREFIX | URI prefix for endpoints |
+| WEBPAWM_LOG_LEVEL | Log level: debug, info, warn, error |
 
 ### Priority
 

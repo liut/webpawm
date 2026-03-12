@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/liut/wisper/server"
+	"github.com/liut/webpawm/server"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -27,7 +27,7 @@ func main() {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd := &cobra.Command{
-		Use:   "wisper",
+		Use:   "webpawm",
 		Short: "MCP web search server",
 		Long: `Wisper is an MCP server that provides web search capabilities.
 It supports multiple search engines including SearXNG, Google, Bing, and Arxiv.`,
@@ -39,7 +39,7 @@ It supports multiple search engines including SearXNG, Google, Bing, and Arxiv.`
 	}
 
 	// Persistent flags (available to all subcommands)
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file path (default: ~/.wisper/config.json)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file path (default: ~/.webpawm/config.json)")
 
 	// web subcommand
 	webCmd := &cobra.Command{
@@ -63,10 +63,10 @@ It supports multiple search engines including SearXNG, Google, Bing, and Arxiv.`
 	genCfgCmd := &cobra.Command{
 		Use:   "gen-cfg",
 		Short: "Generate default config file",
-		Long:  "Generate a default config file at ~/.wisper/config.json",
+		Long:  "Generate a default config file at ~/.webpawm/config.json",
 		Run:   runGenCfgCommand,
 	}
-	genCfgCmd.Flags().StringP("output", "o", "", "Output path (default: ~/.wisper/config.json)")
+	genCfgCmd.Flags().StringP("output", "o", "", "Output path (default: ~/.webpawm/config.json)")
 
 	rootCmd.AddCommand(webCmd)
 	rootCmd.AddCommand(stdCmd)
@@ -80,18 +80,27 @@ It supports multiple search engines including SearXNG, Google, Bing, and Arxiv.`
 }
 
 func initConfig() {
+	var configPaths []string
+
 	// If --config flag is provided, use it
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)
+		configPaths = []string{cfgFile}
 	} else {
 		// Default config file locations
 		viper.SetConfigName("config")
-		viper.AddConfigPath("$HOME/.wisper")
+		viper.AddConfigPath("$HOME/.webpawm")
 		viper.AddConfigPath(".")
+		// Record the paths we're looking for
+		homeDir, err := os.UserHomeDir()
+		if err == nil {
+			configPaths = append(configPaths, filepath.Join(homeDir, ".webpawm", "config.json"))
+		}
+		configPaths = append(configPaths, "./config.json")
 	}
 
 	// Environment variable settings
-	viper.SetEnvPrefix("WISPER")
+	viper.SetEnvPrefix("WEBPAWM")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 
@@ -102,9 +111,13 @@ func initConfig() {
 	// Read config file (non-fatal if not found)
 	if err := viper.ReadInConfig(); err != nil {
 		var viperErr viper.ConfigFileNotFoundError
-		if !errors.As(err, &viperErr) {
-			fmt.Fprintf(os.Stderr, "Warning: error reading config file: %v\n", err)
+		if errors.As(err, &viperErr) {
+			slog.Info("Config file not found, using environment variables and defaults", "searched", configPaths)
+		} else {
+			slog.Warn("Error reading config file, using environment variables and defaults", "file", viper.ConfigFileUsed(), "error", err)
 		}
+	} else {
+		slog.Info("Config file loaded successfully", "file", viper.ConfigFileUsed())
 	}
 }
 
@@ -154,7 +167,7 @@ func runGenCfgCommand(cmd *cobra.Command, args []string) {
 			fmt.Fprintf(os.Stderr, "Error: cannot find home directory: %v\n", err)
 			os.Exit(1)
 		}
-		outputPath = filepath.Join(homeDir, ".wisper", "config.json")
+		outputPath = filepath.Join(homeDir, ".webpawm", "config.json")
 	}
 
 	// Create directory if not exists
@@ -237,7 +250,7 @@ func startHTTPServer(config *server.Config) {
 		httpEndpoint = config.ListenAddr + uriPrefix
 	}
 
-	fmt.Printf("Starting Wisper MCP server (HTTP and SSE mode)...\n")
+	fmt.Printf("Starting Webpawm MCP server (HTTP and SSE mode)...\n")
 	fmt.Printf("  Listen: %s\n", config.ListenAddr)
 	fmt.Printf("  HTTP endpoint: http://%s/mcp\n", httpEndpoint)
 	fmt.Printf("  SSE endpoint:  http://%s/mcp/sse\n", httpEndpoint)
@@ -315,7 +328,7 @@ func runStdioServer() {
 func startStdioServer(server *server.WebSearchServer) {
 	mcpServer := server.CreateMcpServer()
 
-	fmt.Printf("Starting Wisper MCP server (stdio mode)...\n")
+	fmt.Printf("Starting Webpawm MCP server (stdio mode)...\n")
 
 	if err := mcpServer.Run(context.Background(), &mcp.StdioTransport{}); err != nil {
 		log.Printf("Server error: %v", err)
