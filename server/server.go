@@ -3,12 +3,12 @@ package server
 import (
 	"slices"
 
-	"github.com/liut/wisper/engine"
+	"github.com/liut/webpawm/engine"
 )
 
 // Config for the web search server.
 // Can be loaded from environment variables using ProcessConfig.
-// Supports configuration from file (~/.wisper/config.json) and environment variables.
+// Supports configuration from file (~/.webpawm/config.json) and environment variables.
 type Config struct {
 	SearchXNGURL  string `mapstructure:"searchxng_url" envconfig:"SEARCHXNG_URL"`    // SearXNG base URL (e.g., https://searchx.ng)
 	GoogleAPIKey  string `mapstructure:"google_api_key" envconfig:"GOOGLE_API_KEY"`  // Google Custom Search API key

@@ -1,7 +1,7 @@
 .SILENT :
 .PHONY : all clean dist lint test
 
-NAME:=wisper
+NAME:=webpawm
 ROOF:=github.com/liut/$(NAME)
 
 # Get version: use tag if available, otherwise use short hash

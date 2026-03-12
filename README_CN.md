@@ -1,30 +1,30 @@
-# Wisper
+# Webpawm
 
-Wisper 是一个 MCP（Model Context Protocol）服务器，提供网页搜索功能，支持多种搜索引擎。
+Webpawm 是一个 MCP（Model Context Protocol）服务器，提供网页搜索功能，支持多种搜索引擎。
 
 ## 功能特性
 
 - **多搜索引擎支持**：SearXNG、Google、Bing、Brave、Bing CN（必应中国）、Arxiv
 - **多种传输模式**：
-  - HTTP/SSE 模式（使用 `wisper web` 命令）
-  - Stdio 模式（使用 `wisper` 或 `wisper std` 命令）
+  - HTTP/SSE 模式（使用 `webpawm web` 命令）
+  - Stdio 模式（使用 `webpawm` 或 `webpawm std` 命令）
 - **智能搜索**：智能查询优化与结果聚合
 - **多引擎搜索**：同时跨多个搜索引擎搜索
-- **灵活配置**：支持配置文件（~/.wisper/config.json）和环境变量
+- **灵活配置**：支持配置文件（~/.webpawm/config.json）和环境变量
 - **访问日志**：内置基于 slog 的 HTTP 访问日志
 
 ## 安装
 
 ```bash
-go install github.com/liut/wisper@latest
+go install github.com/liut/webpawm@latest
 ```
 
 或从源码构建：
 
 ```bash
-git clone https://github.com/liut/wisper.git
-cd wisper
-go build -o wisper .
+git clone https://github.com/liut/webpawm.git
+cd webpawm
+go build -o webpawm .
 ```
 
 ## 使用方法
@@ -34,7 +34,7 @@ go build -o wisper .
 作为本地 MCP 工具运行：
 
 ```bash
-wisper
+webpawm
 ```
 
 ### HTTP/SSE 模式
@@ -42,7 +42,7 @@ wisper
 启动 Web 服务器：
 
 ```bash
-wisper web --listen localhost:8087
+webpawm web --listen localhost:8087
 ```
 
 服务器提供两个端点：
@@ -51,7 +51,7 @@ wisper web --listen localhost:8087
 
 使用 URI 前缀：
 ```bash
-wisper web --listen localhost:8087 --uri-prefix /api
+webpawm web --listen localhost:8087 --uri-prefix /api
 ```
 端点变为：
 - HTTP: `http://localhost:8087/api/mcp`
@@ -59,7 +59,7 @@ wisper web --listen localhost:8087 --uri-prefix /api
 
 ## MCP 工具
 
-Wisper 提供三个 MCP 工具：
+Webpawm 提供三个 MCP 工具：
 
 ### web_search
 
@@ -97,7 +97,7 @@ Wisper 提供三个 MCP 工具：
 
 ### 配置文件
 
-创建 `~/.wisper/config.json`：
+创建 `~/.webpawm/config.json`：
 
 ```json
 {
@@ -118,16 +118,16 @@ Wisper 提供三个 MCP 工具：
 
 | 变量名 | 说明 |
 |--------|------|
-| WISPER_SEARCHXNG_URL | SearXNG 基础 URL |
-| WISPER_GOOGLE_API_KEY | Google 自定义搜索 API 密钥 |
-| WISPER_GOOGLE_CX | Google 搜索引擎 ID |
-| WISPER_BING_API_KEY | Bing 搜索 API 密钥 |
-| WISPER_BRAVE_API_KEY | Brave 搜索 API 密钥 |
-| WISPER_MAX_RESULTS | 默认最大结果数 |
-| WISPER_DEFAULT_ENGINE | 默认搜索引擎 |
-| WISPER_LISTEN_ADDR | HTTP 监听地址 |
-| WISPER_URI_PREFIX | 端点 URI 前缀 |
-| WISPER_LOG_LEVEL | 日志级别：debug, info, warn, error |
+| WEBPAWM_SEARCHXNG_URL | SearXNG 基础 URL |
+| WEBPAWM_GOOGLE_API_KEY | Google 自定义搜索 API 密钥 |
+| WEBPAWM_GOOGLE_CX | Google 搜索引擎 ID |
+| WEBPAWM_BING_API_KEY | Bing 搜索 API 密钥 |
+| WEBPAWM_BRAVE_API_KEY | Brave 搜索 API 密钥 |
+| WEBPAWM_MAX_RESULTS | 默认最大结果数 |
+| WEBPAWM_DEFAULT_ENGINE | 默认搜索引擎 |
+| WEBPAWM_LISTEN_ADDR | HTTP 监听地址 |
+| WEBPAWM_URI_PREFIX | 端点 URI 前缀 |
+| WEBPAWM_LOG_LEVEL | 日志级别：debug, info, warn, error |
 
 ### 优先级
 

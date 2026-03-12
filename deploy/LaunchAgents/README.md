@@ -1,10 +1,10 @@
-# Wisper macOS LaunchAgent
+# Webpawm macOS LaunchAgent
 
-本目录包含用于在 macOS 系统启动时自动运行 Wisper 服务的 LaunchAgent 配置文件。
+本目录包含用于在 macOS 系统启动时自动运行 Webpawm 服务的 LaunchAgent 配置文件。
 
 ## 文件说明
 
-- `net.wisper.mcp-web.plist` - MCP Web 服务的启动配置文件
+- `net.webpawm.mcp-web.plist` - MCP Web 服务的启动配置文件
 
 ## 安装方法
 
@@ -12,7 +12,7 @@
 
 ```bash
 mkdir -p ~/Library/LaunchAgents
-cp net.wisper.mcp-web.plist ~/Library/LaunchAgents/
+cp net.webpawm.mcp-web.plist ~/Library/LaunchAgents/
 ```
 
 ### 2. 自定义配置（可选）
@@ -28,45 +28,45 @@ cp net.wisper.mcp-web.plist ~/Library/LaunchAgents/
 ### 3. 加载服务
 
 ```bash
-launchctl load ~/Library/LaunchAgents/net.wisper.mcp-web.plist
+launchctl load ~/Library/LaunchAgents/net.webpawm.mcp-web.plist
 ```
 
 ### 4. 启动服务
 
 ```bash
-launchctl start net.wisper.mcp-web
+launchctl start net.webpawm.mcp-web
 ```
 
 ## 管理命令
 
 ```bash
 # 查看服务状态
-launchctl list | grep wisper
+launchctl list | grep webpawm
 
 # 停止服务
-launchctl stop net.wisper.mcp-web
+launchctl stop net.webpawm.mcp-web
 
 # 重新加载配置
-launchctl unload ~/Library/LaunchAgents/net.wisper.mcp-web.plist
-launchctl load ~/Library/LaunchAgents/net.wisper.mcp-web.plist
+launchctl unload ~/Library/LaunchAgents/net.webpawm.mcp-web.plist
+launchctl load ~/Library/LaunchAgents/net.webpawm.mcp-web.plist
 
 # 卸载服务
-launchctl unload ~/Library/LaunchAgents/net.wisper.mcp-web.plist
-rm ~/Library/LaunchAgents/net.wisper.mcp-web.plist
+launchctl unload ~/Library/LaunchAgents/net.webpawm.mcp-web.plist
+rm ~/Library/LaunchAgents/net.webpawm.mcp-web.plist
 ```
 
 ## 查看日志
 
 ```bash
 # 实时查看输出日志
-tail -f ~/Library/Logs/wisper-mcp-web.out.log
+tail -f ~/Library/Logs/webpawm-mcp-web.out.log
 
 # 查看错误日志
-tail -f ~/Library/Logs/wisper-mcp-web.err.log
+tail -f ~/Library/Logs/webpawm-mcp-web.err.log
 ```
 
 ## 注意事项
 
-1. 确保 wisper 二进制文件路径正确（当前配置为 `/usr/local/bin/wisper`）
+1. 确保 webpawm 二进制文件路径正确（当前配置为 `/usr/local/bin/webpawm`）
 2. 如果使用代理，请确保代理地址和端口配置正确
 3. 服务将在用户登录后自动启动
