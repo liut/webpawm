@@ -3,7 +3,7 @@
 
 NAME:=webpawm
 ROOF:=github.com/liut/$(NAME)
-
+SOURCES=$(shell find . -type f \( -name "*.go" ! -name "*_test.go" \) -print )
 # Get version: use tag if available, otherwise use short hash
 TAG := $(shell git describe --tags --always --long 2>/dev/null || git rev-parse --short HEAD)
 VERSION := $(or $(VERSION),$(TAG))
@@ -20,19 +20,19 @@ all: dist
 
 dist: dist/linux_amd64/$(NAME) dist/darwin_amd64/$(NAME) dist/darwin_arm64/$(NAME) dist/windows_amd64/$(NAME).exe
 
-dist/linux_amd64/$(NAME):
+dist/linux_amd64/$(NAME): $(SOURCES)
 	mkdir -p dist/linux_amd64
 	GO111MODULE=$(GOMOD) GOOS=linux GOARCH=amd64 $(GO) build -ldflags "$(LDFLAGS) -s -w" -o $@ .
 
-dist/darwin_amd64/$(NAME):
+dist/darwin_amd64/$(NAME): $(SOURCES)
 	mkdir -p dist/darwin_amd64
 	GO111MODULE=$(GOMOD) GOOS=darwin GOARCH=amd64 $(GO) build -ldflags "$(LDFLAGS) -s -w" -o $@ .
 
-dist/darwin_arm64/$(NAME):
+dist/darwin_arm64/$(NAME): $(SOURCES)
 	mkdir -p dist/darwin_arm64
 	GO111MODULE=$(GOMOD) GOOS=darwin GOARCH=arm64 $(GO) build -ldflags "$(LDFLAGS) -s -w" -o $@ .
 
-dist/windows_amd64/$(NAME).exe:
+dist/windows_amd64/$(NAME).exe: $(SOURCES)
 	mkdir -p dist/windows_amd64
 	GO111MODULE=$(GOMOD) GOOS=windows GOARCH=amd64 $(GO) build -ldflags "$(LDFLAGS) -s -w" -o $@ .
 

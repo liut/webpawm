@@ -10,16 +10,16 @@ import (
 // Can be loaded from environment variables using ProcessConfig.
 // Supports configuration from file (~/.webpawm/config.json) and environment variables.
 type Config struct {
-	SearchXNGURL  string `mapstructure:"searchxng_url" envconfig:"SEARCHXNG_URL"`    // SearXNG base URL (e.g., https://searchx.ng)
-	GoogleAPIKey  string `mapstructure:"google_api_key" envconfig:"GOOGLE_API_KEY"`  // Google Custom Search API key
-	GoogleCX      string `mapstructure:"google_cx" envconfig:"GOOGLE_CX"`            // Google Search Engine ID
-	BingAPIKey    string `mapstructure:"bing_api_key" envconfig:"BING_API_KEY"`      // Bing Search API key
-	BraveAPIKey   string `mapstructure:"brave_api_key" envconfig:"BRAVE_API_KEY"`    // Brave Search API key
-	MaxResults    int    `mapstructure:"max_results" envconfig:"MAX_RESULTS"`         // Default max results (default: 10)
-	DefaultEngine string `mapstructure:"default_engine" envconfig:"DEFAULT_ENGINE"`    // Default search engine
-	ListenAddr    string `mapstructure:"listen_addr" envconfig:"LISTEN_ADDR"`         // HTTP listen address
-	URIPrefix     string `mapstructure:"uri_prefix" envconfig:"URI_PREFIX"`           // URI prefix for HTTP endpoints
-	LogLevel      string `mapstructure:"log_level" envconfig:"LOG_LEVEL"`             // Log level: debug, info, warn, error (default: info)
+	SearchXNGURL  string `mapstructure:"searchxng_url" envconfig:"SEARCHXNG_URL"`   // SearXNG base URL (e.g., https://searchx.ng)
+	GoogleAPIKey  string `mapstructure:"google_api_key" envconfig:"GOOGLE_API_KEY"` // Google Custom Search API key
+	GoogleCX      string `mapstructure:"google_cx" envconfig:"GOOGLE_CX"`           // Google Search Engine ID
+	BingAPIKey    string `mapstructure:"bing_api_key" envconfig:"BING_API_KEY"`     // Bing Search API key
+	BraveAPIKey   string `mapstructure:"brave_api_key" envconfig:"BRAVE_API_KEY"`   // Brave Search API key
+	MaxResults    int    `mapstructure:"max_results" envconfig:"MAX_RESULTS"`       // Default max results (default: 10)
+	DefaultEngine string `mapstructure:"default_engine" envconfig:"DEFAULT_ENGINE"` // Default search engine
+	ListenAddr    string `mapstructure:"listen_addr" envconfig:"LISTEN_ADDR"`       // HTTP listen address
+	URIPrefix     string `mapstructure:"uri_prefix" envconfig:"URI_PREFIX"`         // URI prefix for HTTP endpoints
+	LogLevel      string `mapstructure:"log_level" envconfig:"LOG_LEVEL"`           // Log level: debug, info, warn, error (default: info)
 }
 
 // WebServer represents the MCP web search server
@@ -132,25 +132,6 @@ func generateSearchQueries(question, depth string) []searchQuery {
 	}
 
 	return queries
-}
-
-// determineEngine selects the appropriate search engine for a query
-func (s *WebServer) determineEngine(queryType string, includeAcademic bool) string {
-	if queryType == "academic" && includeAcademic {
-		if _, ok := s.engines["arxiv"]; ok {
-			return "arxiv"
-		}
-	}
-
-	if _, ok := s.engines["searchxng"]; ok {
-		return "searchxng"
-	}
-
-	for name := range s.engines {
-		return name
-	}
-
-	return ""
 }
 
 // removeDuplicates removes duplicate search results based on URL
