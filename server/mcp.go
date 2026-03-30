@@ -15,10 +15,10 @@ func (s *WebServer) CreateMcpServer() *mcp.Server {
 		Version: "1.0.0",
 	}, nil)
 
-	// Add web_search tool
+	// Add web_search tool (unified: supports single engine, multi-engine, and smart search)
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "web_search",
-		Description: "Search the web using various search engines (SearXNG, Arxiv, Google, Bing)",
+		Description: "Search the web using various search engines. Supports single engine, multi-engine parallel search, and intelligent query expansion with deduplication by default.",
 		InputSchema: map[string]any{
 			"type": "object",
 			"properties": map[string]any{
@@ -28,12 +28,20 @@ func (s *WebServer) CreateMcpServer() *mcp.Server {
 				},
 				"engine": map[string]any{
 					"type":        "string",
-					"description": "Search engine to use",
+					"description": "Single search engine to use (mutually exclusive with engines)",
 					"enum":        s.getAvailableEngines(),
+				},
+				"engines": map[string]any{
+					"type":        "array",
+					"description": "List of search engines to use (mutually exclusive with engine). Uses all available engines if empty with auto_query_expand enabled",
+					"items": map[string]any{
+						"type": "string",
+						"enum": s.getAvailableEngines(),
+					},
 				},
 				"max_results": map[string]any{
 					"type":        "integer",
-					"description": "Maximum number of results to return",
+					"description": "Maximum number of results to return (default: 10)",
 					"minimum":     1,
 					"maximum":     50,
 				},
@@ -45,72 +53,28 @@ func (s *WebServer) CreateMcpServer() *mcp.Server {
 					"type":        "string",
 					"description": "Arxiv category for academic paper search (e.g., 'cs.AI', 'math.CO')",
 				},
+				"search_depth": map[string]any{
+					"type":        "string",
+					"description": "Search depth: 'quick' (1 query), 'normal' (2 queries), 'deep' (3 queries). Default: 'normal'",
+					"enum":        []string{"quick", "normal", "deep"},
+				},
+				"include_academic": map[string]any{
+					"type":        "boolean",
+					"description": "Include academic papers from Arxiv (default: false)",
+				},
+				"auto_query_expand": map[string]any{
+					"type":        "boolean",
+					"description": "Automatically expand query with variations (news, academic) based on search_depth (default: true)",
+				},
+				"auto_deduplicate": map[string]any{
+					"type":        "boolean",
+					"description": "Automatically deduplicate results by URL (default: true)",
+				},
 			},
 			"required": []string{"query"},
 		},
 	}, func(ctx context.Context, req *mcp.CallToolRequest, params WebSearchParams) (*mcp.CallToolResult, any, error) {
 		result, err := s.handleWebSearch(ctx, params)
-		return result, nil, err
-	})
-
-	// Add multi_search tool
-	mcp.AddTool(server, &mcp.Tool{
-		Name:        "multi_search",
-		Description: "Search across multiple search engines simultaneously",
-		InputSchema: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"query": map[string]any{
-					"type":        "string",
-					"description": "The search query",
-				},
-				"engines": map[string]any{
-					"type":        "array",
-					"description": "List of search engines to use",
-					"items": map[string]any{
-						"type": "string",
-						"enum": s.getAvailableEngines(),
-					},
-				},
-				"max_results_per_engine": map[string]any{
-					"type":        "integer",
-					"description": "Maximum number of results per engine",
-					"minimum":     1,
-					"maximum":     20,
-				},
-			},
-			"required": []string{"query"},
-		},
-	}, func(ctx context.Context, req *mcp.CallToolRequest, params MultiSearchParams) (*mcp.CallToolResult, any, error) {
-		result, err := s.handleMultiSearch(ctx, params)
-		return result, nil, err
-	})
-
-	// Add smart_search tool
-	mcp.AddTool(server, &mcp.Tool{
-		Name:        "smart_search",
-		Description: "Intelligently search the web with query optimization and result aggregation",
-		InputSchema: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"question": map[string]any{
-					"type":        "string",
-					"description": "The user's question or search intent",
-				},
-				"search_depth": map[string]any{
-					"type":        "string",
-					"description": "Search depth: 'quick' (1-2 queries), 'normal' (3-5 queries), 'deep' (5-10 queries)",
-					"enum":        []string{"quick", "normal", "deep"},
-				},
-				"include_academic": map[string]any{
-					"type":        "boolean",
-					"description": "Whether to include academic papers from Arxiv",
-				},
-			},
-			"required": []string{"question"},
-		},
-	}, func(ctx context.Context, req *mcp.CallToolRequest, params SmartSearchParams) (*mcp.CallToolResult, any, error) {
-		result, err := s.handleSmartSearch(ctx, params)
 		return result, nil, err
 	})
 

@@ -13,36 +13,159 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
-// handleWebSearch handles the web_search tool
+// handleWebSearch handles the unified web_search tool
 func (s *WebServer) handleWebSearch(ctx context.Context, params WebSearchParams) (*mcp.CallToolResult, error) {
 	if params.Query == "" {
 		return nil, errors.New("query is required")
 	}
 
-	engineName := params.Engine
-	if engineName == "" {
-		engineName = s.defaultEngine
+	// Set defaults for optional boolean params
+	if params.SearchDepth == "" {
+		params.SearchDepth = "normal"
 	}
 
-	searchEngine, exists := s.engines[engineName]
-	if !exists {
-		return nil, fmt.Errorf("search engine '%s' is not available", engineName)
+	// Resolve engines to use
+	enginesToUse := s.resolveEngines(params)
+
+	// Generate queries based on auto_query_expand setting
+	queries := s.generateQueries(params)
+
+	// Execute searches
+	allResults, enginesUsed := s.executeSearches(ctx, enginesToUse, queries, params)
+
+	// Deduplicate if enabled
+	rawCount := len(allResults)
+	if params.AutoDeduplicate {
+		allResults = s.removeDuplicates(allResults)
 	}
 
-	maxRes := params.MaxResults
-	if maxRes <= 0 {
-		maxRes = s.maxResults
-	}
+	// Format response
+	response := s.formatResponse(params, queries, enginesUsed, allResults, rawCount)
 
-	results, err := searchEngine.Search(ctx, engine.SearchQuery{
-		Queries:       []string{params.Query},
-		MaxResults:    maxRes,
-		Language:      params.Language,
-		ArxivCategory: params.ArxivCategory,
-	})
+	responseJSON, err := json.Marshal(response)
 	if err != nil {
-		slog.Warn("search failed", "engine", engineName, "query", params.Query, "error", err)
-		return nil, fmt.Errorf("search failed: %w", err)
+		return nil, fmt.Errorf("failed to marshal response: %w", err)
+	}
+
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{
+			&mcp.TextContent{Text: string(responseJSON)},
+		},
+	}, nil
+}
+
+// resolveEngines determines which engines to use based on params
+func (s *WebServer) resolveEngines(params WebSearchParams) []string {
+	// If specific engines are requested, use those
+	if len(params.Engines) > 0 {
+		return params.Engines
+	}
+
+	// If a single engine is specified, use that
+	if params.Engine != "" {
+		return []string{params.Engine}
+	}
+
+	// If auto_query_expand is enabled, use all available engines
+	if params.AutoQueryExpand {
+		engines := make([]string, 0, len(s.engines))
+		for name := range s.engines {
+			engines = append(engines, name)
+		}
+		return engines
+	}
+
+	// Default to the server's default engine
+	return []string{s.defaultEngine}
+}
+
+// generateQueries generates search queries based on auto_query_expand setting
+func (s *WebServer) generateQueries(params WebSearchParams) []searchQuery {
+	if !params.AutoQueryExpand {
+		return []searchQuery{{
+			Query:      params.Query,
+			MaxResults: s.resolveMaxResults(params),
+			Type:       "general",
+		}}
+	}
+
+	return generateSearchQueries(params.Query, params.SearchDepth)
+}
+
+// resolveMaxResults resolves the max results to use
+func (s *WebServer) resolveMaxResults(params WebSearchParams) int {
+	if params.MaxResults > 0 {
+		return params.MaxResults
+	}
+	return s.maxResults
+}
+
+// executeSearches runs searches across engines and queries
+func (s *WebServer) executeSearches(ctx context.Context, engines []string, queries []searchQuery, params WebSearchParams) ([]engine.SearchResult, []string) {
+	var allResults []engine.SearchResult
+	enginesUsed := make([]string, 0)
+
+	for _, engineName := range engines {
+		searchEngine, exists := s.engines[engineName]
+		if !exists {
+			continue
+		}
+
+		for _, q := range queries {
+			// Determine if this query type should use this engine
+			if !s.shouldUseEngine(engineName, q.Type, params.IncludeAcademic) {
+				continue
+			}
+
+			maxResults := q.MaxResults
+			if maxResults <= 0 {
+				maxResults = s.resolveMaxResults(params)
+			}
+
+			results, err := searchEngine.Search(ctx, engine.SearchQuery{
+				Queries:       []string{q.Query},
+				MaxResults:    maxResults,
+				Language:      params.Language,
+				ArxivCategory: params.ArxivCategory,
+			})
+			if err != nil {
+				slog.Warn("search failed", "engine", engineName, "query", q.Query, "error", err)
+				continue
+			}
+
+			allResults = append(allResults, results...)
+			if !slices.Contains(enginesUsed, engineName) {
+				enginesUsed = append(enginesUsed, engineName)
+			}
+		}
+	}
+
+	return allResults, enginesUsed
+}
+
+// shouldUseEngine determines if an engine should be used for a query type
+func (s *WebServer) shouldUseEngine(engineName, queryType string, includeAcademic bool) bool {
+	if queryType == "academic" {
+		return includeAcademic && engineName == "arxiv"
+	}
+	return true
+}
+
+// formatResponse creates the unified response structure
+func (s *WebServer) formatResponse(params WebSearchParams, queries []searchQuery, enginesUsed []string, results []engine.SearchResult, rawCount int) map[string]any {
+	// Build search queries list
+	searchQueries := make([]string, len(queries))
+	for i, q := range queries {
+		searchQueries[i] = q.Query
+	}
+
+	searchSummary := map[string]any{
+		"original_query":     params.Query,
+		"search_queries":     searchQueries,
+		"engines_used":       enginesUsed,
+		"search_depth":       params.SearchDepth,
+		"total_raw_results":  rawCount,
+		"total_unique_results": len(results),
 	}
 
 	var formattedResults []map[string]any
@@ -55,162 +178,10 @@ func (s *WebServer) handleWebSearch(ctx context.Context, params WebSearchParams)
 		})
 	}
 
-	response := SearchResultResponse{
-		Engine:  engineName,
-		Query:   params.Query,
-		Count:   len(results),
-		Results: formattedResults,
+	return map[string]any{
+		"summary":       searchSummary,
+		"total_results": len(results),
+		"results":       formattedResults,
+		"search_time":   time.Now().Format(time.RFC3339),
 	}
-
-	responseJSON, err := json.Marshal(response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal response: %w", err)
-	}
-
-	return &mcp.CallToolResult{
-		Content: []mcp.Content{
-			&mcp.TextContent{Text: string(responseJSON)},
-		},
-	}, nil
-}
-
-// handleMultiSearch handles the multi_search tool
-func (s *WebServer) handleMultiSearch(ctx context.Context, params MultiSearchParams) (*mcp.CallToolResult, error) {
-	if params.Query == "" {
-		return nil, errors.New("query is required")
-	}
-
-	engineNames := params.Engines
-	if len(engineNames) == 0 {
-		for name := range s.engines {
-			engineNames = append(engineNames, name)
-		}
-	}
-
-	maxResults := params.MaxResultsPerEngine
-	if maxResults <= 0 {
-		maxResults = 5
-	}
-
-	allResults := make(map[string][]map[string]any)
-
-	for _, engineName := range engineNames {
-		searchEngine, exists := s.engines[engineName]
-		if !exists {
-			continue
-		}
-
-		results, err := searchEngine.Search(ctx, engine.SearchQuery{
-			Queries:    []string{params.Query},
-			MaxResults: maxResults,
-		})
-		if err != nil {
-			allResults[engineName] = []map[string]any{
-				{"error": err.Error()},
-			}
-			continue
-		}
-
-		var engineResults []map[string]any
-		for i, result := range results {
-			engineResults = append(engineResults, map[string]any{
-				"index":   i + 1,
-				"title":   result.Title,
-				"link":    result.Link,
-				"snippet": result.Content,
-			})
-		}
-
-		allResults[engineName] = engineResults
-	}
-
-	response := map[string]any{
-		"query":   params.Query,
-		"engines": engineNames,
-		"results": allResults,
-	}
-
-	responseJSON, err := json.Marshal(response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal response: %w", err)
-	}
-
-	return &mcp.CallToolResult{
-		Content: []mcp.Content{
-			&mcp.TextContent{Text: string(responseJSON)},
-		},
-	}, nil
-}
-
-// handleSmartSearch handles the smart_search tool
-func (s *WebServer) handleSmartSearch(ctx context.Context, params SmartSearchParams) (*mcp.CallToolResult, error) {
-	if params.Question == "" {
-		return nil, errors.New("question is required")
-	}
-
-	searchDepth := params.SearchDepth
-	if searchDepth == "" {
-		searchDepth = "normal"
-	}
-
-	queries := generateSearchQueries(params.Question, searchDepth)
-
-	var allResults []engine.SearchResult
-	searchSummary := map[string]any{
-		"original_question": params.Question,
-		"search_queries":    queries,
-		"engines_used":      []string{},
-	}
-
-	for _, q := range queries {
-		engineName := s.determineEngine(q.Type, params.IncludeAcademic)
-		if engineName == "" {
-			continue
-		}
-
-		searchEngine := s.engines[engineName]
-
-		results, err := searchEngine.Search(ctx, engine.SearchQuery{
-			Queries:    []string{q.Query},
-			MaxResults: q.MaxResults,
-		})
-		if err == nil {
-			allResults = append(allResults, results...)
-
-			enginesUsed, _ := searchSummary["engines_used"].([]string)
-			if !slices.Contains(enginesUsed, engineName) {
-				searchSummary["engines_used"] = append(enginesUsed, engineName)
-			}
-		}
-	}
-
-	uniqueResults := s.removeDuplicates(allResults)
-
-	var formattedResults []map[string]any
-	for i, result := range uniqueResults {
-		formattedResults = append(formattedResults, map[string]any{
-			"index":   i + 1,
-			"title":   result.Title,
-			"link":    result.Link,
-			"snippet": result.Content,
-		})
-	}
-
-	response := map[string]any{
-		"summary":        searchSummary,
-		"total_results":  len(uniqueResults),
-		"results":        formattedResults,
-		"search_time":    time.Now().Format(time.RFC3339),
-	}
-
-	responseJSON, err := json.Marshal(response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal response: %w", err)
-	}
-
-	return &mcp.CallToolResult{
-		Content: []mcp.Content{
-			&mcp.TextContent{Text: string(responseJSON)},
-		},
-	}, nil
 }
