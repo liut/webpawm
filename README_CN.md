@@ -23,7 +23,8 @@ go install github.com/liut/webpawm@latest
 ```bash
 git clone https://github.com/liut/webpawm.git
 cd webpawm
-go build -o webpawm .
+make main
+install dist/webpawm /usr/local/bin/
 ```
 
 ## 使用方法

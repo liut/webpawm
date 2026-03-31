@@ -23,7 +23,8 @@ Or build from source:
 ```bash
 git clone https://github.com/liut/webpawm.git
 cd webpawm
-go build -o webpawm .
+make main
+install dist/webpawm /usr/local/bin/
 ```
 
 ## Usage
