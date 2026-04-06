@@ -76,7 +76,6 @@ func withInputSchemaWithEnums[T any](enumOverrides map[string][]string) mcp.Tool
 }
 
 // handleWebFetchHandler is the handler for web_fetch tool
-func (s *WebServer) handleWebFetchHandler(ctx context.Context, request mcp.CallToolRequest, args WebFetchParams) (webFetchOutput, error) {
-	result, err := s.handleWebFetch(ctx, args)
-	return *result, err
+func (s *WebServer) handleWebFetchHandler(ctx context.Context, request mcp.CallToolRequest, args WebFetchParams) (*WebFetchResponse, error) {
+	return s.handleWebFetch(ctx, args)
 }

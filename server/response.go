@@ -22,3 +22,13 @@ type SearchResult struct {
 	Link    string `json:"link"`
 	Snippet string `json:"snippet"`
 }
+
+type WebFetchResponse struct {
+	ContentType    string `json:"content_type"`
+	OriginalLength int    `json:"original_length"`
+	Content        string `json:"content"`
+	Truncated      bool   `json:"truncated"`
+	NextStart      int    `json:"next_start,omitempty"`
+	Error          string `json:"error,omitempty"`
+	URL            string `json:"url"`
+}
