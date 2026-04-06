@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/liut/webpawm/server"
 )
 
 func TestAPIKeyAuthMiddleware(t *testing.T) {
@@ -79,7 +81,7 @@ func TestAPIKeyAuthMiddleware(t *testing.T) {
 				w.WriteHeader(http.StatusOK)
 			})
 
-			middleware := apiKeyAuthMiddleware(tt.apiKey, nextHandler, nil)
+			middleware := server.APIKeyAuthMiddleware(tt.apiKey, nextHandler, nil)
 
 			req := httptest.NewRequest(http.MethodGet, "/mcp", nil)
 			if tt.requestHeader != "" {
@@ -112,7 +114,7 @@ func TestAPIKeyAuthMiddleware_Passthrough(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	middleware := apiKeyAuthMiddleware(apiKey, nextHandler, nil)
+	middleware := server.APIKeyAuthMiddleware(apiKey, nextHandler, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/mcp", nil)
 	req.Header.Set("X-API-Key", apiKey)

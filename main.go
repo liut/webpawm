@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/subtle"
 	"errors"
 	"fmt"
 	"log"
@@ -10,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/liut/webpawm/server"
 	mcpserver "github.com/mark3labs/mcp-go/server"
@@ -215,7 +213,7 @@ func runGenCfgCommand(cmd *cobra.Command, args []string) {
 
 func startHTTPServer(config *server.Config) {
 	// Setup logger based on LogLevel
-	logger := setupLogger(config.LogLevel)
+	logger := server.SetupLogger(config.LogLevel)
 
 	srv := server.NewWebServer(*config)
 	mcpServer := srv.CreateMcpServer()
@@ -237,9 +235,9 @@ func startHTTPServer(config *server.Config) {
 	// Wrap with API key auth and logging middleware
 	var handler http.Handler = mux
 	if config.APIKey != "" {
-		handler = apiKeyAuthMiddleware(config.APIKey, handler, logger)
+		handler = server.APIKeyAuthMiddleware(config.APIKey, handler, logger)
 	}
-	handler = loggingMiddleware(logger, handler)
+	handler = server.LoggingMiddleware(logger, handler)
 
 	// Print endpoints
 	httpEndpoint := config.ListenAddr
@@ -261,88 +259,6 @@ func startHTTPServer(config *server.Config) {
 	if err := http.ListenAndServe(config.ListenAddr, handler); err != nil {
 		log.Fatalf("Server error: %v", err)
 	}
-}
-
-// setupLogger creates an slog.Logger based on the LogLevel config
-func setupLogger(level string) *slog.Logger {
-	var slogLevel slog.Level
-	switch strings.ToLower(level) {
-	case "debug":
-		slogLevel = slog.LevelDebug
-	case "info":
-		slogLevel = slog.LevelInfo
-	case "warn", "warning":
-		slogLevel = slog.LevelWarn
-	case "error":
-		slogLevel = slog.LevelError
-	default:
-		slogLevel = slog.LevelInfo
-	}
-
-	return slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slogLevel,
-	}))
-}
-
-// loggingMiddleware logs HTTP requests using slog
-func loggingMiddleware(logger *slog.Logger, next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
-
-		// Wrap ResponseWriter to capture status code
-		wrapped := &responseWriter{ResponseWriter: w, statusCode: http.StatusOK}
-
-		next.ServeHTTP(wrapped, r)
-
-		logger.Info("request",
-			"method", r.Method,
-			"path", r.URL.Path,
-			"status", wrapped.statusCode,
-			"duration", time.Since(start).String(),
-			"client", r.RemoteAddr,
-		)
-	})
-}
-
-// apiKeyAuthMiddleware validates X-API-Key header or Authorization: Bearer header
-func apiKeyAuthMiddleware(validAPIKey string, next http.Handler, logger *slog.Logger) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		clientAPIKey := r.Header.Get("X-API-Key")
-		if clientAPIKey == "" {
-			authHeader := r.Header.Get("Authorization")
-			if strings.HasPrefix(authHeader, "Bearer ") {
-				clientAPIKey = strings.TrimPrefix(authHeader, "Bearer ")
-			}
-		}
-
-		if subtle.ConstantTimeCompare([]byte(clientAPIKey), []byte(validAPIKey)) != 1 {
-			if logger != nil {
-				logger.Warn("authentication failed",
-					"reason", "invalid key",
-					"client", r.RemoteAddr,
-					"path", r.URL.Path,
-				)
-			}
-			w.Header().Set("WWW-Authenticate", `Bearer realm="API", error="invalid_token"`)
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusUnauthorized)
-			_, _ = w.Write([]byte(`{"error": "Unauthorized", "message": "API key required. Use X-API-Key header or Authorization: Bearer <key>"}`))
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
-}
-
-// responseWriter wraps http.ResponseWriter to capture status code
-type responseWriter struct {
-	http.ResponseWriter
-	statusCode int
-}
-
-func (rw *responseWriter) WriteHeader(code int) {
-	rw.statusCode = code
-	rw.ResponseWriter.WriteHeader(code)
 }
 
 func runStdioServer() {
