@@ -232,12 +232,13 @@ func startHTTPServer(config *server.Config) {
 		mux.Handle("/mcp", httpServer)
 	}
 
-	// Wrap with API key auth and logging middleware
+	// Wrap with API key auth, security headers and logging middleware
 	var handler http.Handler = mux
 	if config.APIKey != "" {
 		handler = server.APIKeyAuthMiddleware(config.APIKey, handler, logger)
 	}
 	handler = server.LoggingMiddleware(logger, handler)
+	handler = server.SecurityHeadersMiddleware(handler)
 
 	// Print endpoints
 	httpEndpoint := config.ListenAddr

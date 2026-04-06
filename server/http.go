@@ -4,6 +4,7 @@ import (
 	"crypto/subtle"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -15,27 +16,40 @@ func LoggingMiddleware(logger *slog.Logger, next http.Handler) http.Handler {
 
 		next.ServeHTTP(wrapped, r)
 
-		logger.Info("request",
-			"method", r.Method,
-			"path", r.URL.Path,
-			"status", wrapped.statusCode,
-			"duration", time.Since(start).String(),
-			"client", r.RemoteAddr,
-		)
+		if logger != nil {
+			logger.Info("request",
+				"method", r.Method,
+				"path", r.URL.Path,
+				"status", wrapped.statusCode,
+				"duration", time.Since(start),
+				"client", r.RemoteAddr,
+			)
+		}
+	})
+}
+
+func SecurityHeadersMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("X-Frame-Options", "DENY")
+		w.Header().Set("X-XSS-Protection", "1; mode=block")
+		next.ServeHTTP(w, r)
 	})
 }
 
 func APIKeyAuthMiddleware(validAPIKey string, next http.Handler, logger *slog.Logger) http.Handler {
+	validKeyBytes := []byte(validAPIKey)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		clientAPIKey := r.Header.Get("X-API-Key")
 		if clientAPIKey == "" {
 			authHeader := r.Header.Get("Authorization")
-			if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
-				clientAPIKey = authHeader[7:]
+			if len(authHeader) > 7 && strings.HasPrefix(authHeader, "Bearer ") {
+				clientAPIKey = strings.TrimPrefix(authHeader, "Bearer ")
 			}
 		}
 
-		if subtle.ConstantTimeCompare([]byte(clientAPIKey), []byte(validAPIKey)) != 1 {
+		authOk := subtle.ConstantTimeCompare([]byte(clientAPIKey), validKeyBytes) == 1
+		if !authOk {
 			if logger != nil {
 				logger.Warn("authentication failed",
 					"reason", "invalid key",
