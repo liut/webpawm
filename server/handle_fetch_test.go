@@ -128,8 +128,8 @@ func TestHandleWebFetch_SuccessfulFetch(t *testing.T) {
 		t.Fatal("expected result, got nil")
 	}
 
-	if !strings.Contains(result.Text, "Hello, World!") {
-		t.Errorf("expected content to contain 'Hello, World!', got: %s", result.Text)
+	if !strings.Contains(result.Content, "Hello, World!") {
+		t.Errorf("expected content to contain 'Hello, World!', got: %s", result.Content)
 	}
 }
 
@@ -153,8 +153,8 @@ func TestHandleWebFetch_Truncation(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if !strings.Contains(result.Text, "Content truncated") {
-		t.Errorf("expected truncation message, got: %s", result.Text)
+	if !result.Truncated {
+		t.Errorf("expected truncated to be true, got: %v", result.Truncated)
 	}
 }
 
@@ -179,8 +179,8 @@ func TestHandleWebFetch_StartIndexBeyondContent(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if !strings.Contains(result.Text, "No more content available") {
-		t.Errorf("expected 'No more content available' message, got: %s", result.Text)
+	if !strings.Contains(result.Content, "No more content available") {
+		t.Errorf("expected 'No more content available' message, got: %s", result.Content)
 	}
 }
 
@@ -201,8 +201,8 @@ func TestHandleWebFetch_HTTPError(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if !strings.Contains(result.Text, "HTTP 404") && !strings.Contains(result.Text, "Error fetching URL") {
-		t.Errorf("expected error message in response, got: %s", result.Text)
+	if result.Error == "" {
+		t.Errorf("expected error message in response, got empty string")
 	}
 }
 
@@ -226,8 +226,8 @@ func TestHandleWebFetch_RawHTML(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if !strings.Contains(result.Text, "raw content") {
-		t.Errorf("expected 'raw content' in response for raw mode, got: %s", result.Text)
+	if result.ContentType != "raw" {
+		t.Errorf("expected content type 'raw', got: %s", result.ContentType)
 	}
 }
 
@@ -251,8 +251,8 @@ func TestHandleWebFetch_ConvertedHTML(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if !strings.Contains(result.Text, "Markdown") {
-		t.Errorf("expected 'Markdown' prefix for converted content, got: %s", result.Text)
+	if result.ContentType != "markdown" {
+		t.Errorf("expected content type 'markdown', got: %s", result.ContentType)
 	}
 }
 

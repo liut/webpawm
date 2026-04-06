@@ -20,8 +20,7 @@ const defaultUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/
 
 var converter = htmd.NewConverter("", true, nil)
 
-// handleWebFetch handles the web_fetch tool
-func (s *WebServer) handleWebFetch(ctx context.Context, params WebFetchParams) (*webFetchOutput, error) {
+func (s *WebServer) handleWebFetch(ctx context.Context, params WebFetchParams) (*WebFetchResponse, error) {
 	if params.URL == "" {
 		return nil, errors.New("url is required")
 	}
@@ -42,11 +41,12 @@ func (s *WebServer) handleWebFetch(ctx context.Context, params WebFetchParams) (
 	content, prefix, err := fetchURL(ctx, params.URL, defaultUserAgent, params.Raw)
 	if err != nil {
 		slog.Warn("fetch failed", "url", params.URL, "error", err)
-		return &webFetchOutput{Text: fmt.Sprintf("Error fetching URL: %v", err)}, nil
+		return &WebFetchResponse{URL: params.URL, Error: fmt.Sprintf("Error fetching URL: %v", err)}, nil
 	}
 
-	// Handle truncation
 	originalLength := len(content)
+	var nextStart int
+	var truncated bool
 	if startIndex >= originalLength {
 		content = "<error>No more content available.</error>"
 	} else {
@@ -59,15 +59,30 @@ func (s *WebServer) handleWebFetch(ctx context.Context, params WebFetchParams) (
 			actualContentLength := len(truncatedContent)
 			remainingContent := originalLength - (startIndex + actualContentLength)
 			if actualContentLength == maxLength && remainingContent > 0 {
-				nextStart := startIndex + actualContentLength
-				content += fmt.Sprintf("\n\n<error>Content truncated. Call the fetch tool with a start_index of %d to get more content.</error>", nextStart)
+				nextStart = startIndex + actualContentLength
+				truncated = true
 			}
 		}
 	}
 
-	resultText := fmt.Sprintf("%s\nContents of %s:\n%s", prefix, params.URL, content)
+	contentType := "raw"
+	if prefix == "Markdown" {
+		contentType = "markdown"
+	}
 
-	return &webFetchOutput{Text: resultText}, nil
+	response := &WebFetchResponse{
+		URL:            params.URL,
+		Content:        content,
+		ContentType:    contentType,
+		OriginalLength: originalLength,
+		Truncated:      truncated,
+		NextStart:      nextStart,
+	}
+	if nextStart > 0 {
+		response.NextStart = nextStart
+	}
+
+	return response, nil
 }
 
 // extractContentFromHTML extracts text from HTML and converts to Markdown
