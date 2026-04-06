@@ -11,6 +11,7 @@ Webpawm is an MCP (Model Context Protocol) server that provides web search capab
 - **Unified Search**: Single `web_search` tool with smart defaults (multi-engine, query expansion, deduplication)
 - **Flexible Configuration**: Support for config file (~/.webpawm/config.json) and environment variables
 - **Access Logging**: Built-in slog-based HTTP access logging
+- **API Key Authentication**: Optional API key protection for HTTP endpoint (X-API-Key or Bearer token)
 
 ## Installation
 
@@ -39,7 +40,7 @@ webpawm
 
 ### HTTP/SSE Mode
 
-Start the web server:
+Start the web server (with optional API key authentication):
 
 ```bash
 webpawm web --listen localhost:8087
@@ -56,6 +57,20 @@ webpawm web --listen localhost:8087 --uri-prefix /api
 Endpoints become:
 - HTTP: `http://localhost:8087/api/mcp`
 - SSE: `http://localhost:8087/api/mcp/sse`
+
+### Authentication
+
+When `api_key` is configured in the config file or `WEBPAWM_API_KEY` environment variable, the HTTP endpoint requires authentication.
+
+Request with `X-API-Key` header:
+```bash
+curl -H "X-API-Key: your-secret-key" http://localhost:8087/mcp
+```
+
+Or with `Authorization: Bearer` header:
+```bash
+curl -H "Authorization: Bearer your-secret-key" http://localhost:8087/mcp
+```
 
 ## MCP Tools
 
@@ -104,6 +119,7 @@ Create `~/.webpawm/config.json`:
   "google_cx": "your-search-engine-id",
   "bing_api_key": "your-bing-api-key",
   "brave_api_key": "your-brave-api-key",
+  "api_key": "your-api-key",
   "max_results": 10,
   "default_engine": "searchxng",
   "listen_addr": "localhost:8087",
@@ -121,6 +137,7 @@ Create `~/.webpawm/config.json`:
 | WEBPAWM_GOOGLE_CX | Google Search Engine ID |
 | WEBPAWM_BING_API_KEY | Bing Search API key |
 | WEBPAWM_BRAVE_API_KEY | Brave Search API key |
+| WEBPAWM_API_KEY | API key for HTTP endpoint authentication |
 | WEBPAWM_MAX_RESULTS | Default max results |
 | WEBPAWM_DEFAULT_ENGINE | Default search engine |
 | WEBPAWM_LISTEN_ADDR | HTTP listen address |
