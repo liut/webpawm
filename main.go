@@ -37,7 +37,7 @@ It supports multiple search engines including SearXNG, Google, Bing, and Arxiv.`
 	}
 
 	// Persistent flags (available to all subcommands)
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file path (default: ~/.webpawm/config.json)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file path (default: ~/.config/webpawm/config.json, fallback: ~/.webpawm/config.json)")
 
 	// web subcommand
 	webCmd := &cobra.Command{
@@ -61,10 +61,10 @@ It supports multiple search engines including SearXNG, Google, Bing, and Arxiv.`
 	genCfgCmd := &cobra.Command{
 		Use:   "gen-cfg",
 		Short: "Generate default config file",
-		Long:  "Generate a default config file at ~/.webpawm/config.json",
+		Long:  "Generate a default config file at ~/.config/webpawm/config.json",
 		Run:   runGenCfgCommand,
 	}
-	genCfgCmd.Flags().StringP("output", "o", "", "Output path (default: ~/.webpawm/config.json)")
+	genCfgCmd.Flags().StringP("output", "o", "", "Output path (default: ~/.config/webpawm/config.json)")
 
 	rootCmd.AddCommand(webCmd)
 	rootCmd.AddCommand(stdCmd)
@@ -85,13 +85,17 @@ func initConfig() {
 		viper.SetConfigFile(cfgFile)
 		configPaths = []string{cfgFile}
 	} else {
-		// Default config file locations
+		// Default config file locations (following XDG Base Directory Specification)
 		viper.SetConfigName("config")
+		// XDG config directory (preferred)
+		viper.AddConfigPath("$HOME/.config/webpawm")
+		// Legacy config directory (backward compatibility)
 		viper.AddConfigPath("$HOME/.webpawm")
 		viper.AddConfigPath(".")
 		// Record the paths we're looking for
 		homeDir, err := os.UserHomeDir()
 		if err == nil {
+			configPaths = append(configPaths, filepath.Join(homeDir, ".config", "webpawm", "config.json"))
 			configPaths = append(configPaths, filepath.Join(homeDir, ".webpawm", "config.json"))
 		}
 		configPaths = append(configPaths, "./config.json")
@@ -165,7 +169,8 @@ func runGenCfgCommand(cmd *cobra.Command, args []string) {
 			fmt.Fprintf(os.Stderr, "Error: cannot find home directory: %v\n", err)
 			os.Exit(1)
 		}
-		outputPath = filepath.Join(homeDir, ".webpawm", "config.json")
+		// Use XDG config directory as default
+		outputPath = filepath.Join(homeDir, ".config", "webpawm", "config.json")
 	}
 
 	// Create directory if not exists
