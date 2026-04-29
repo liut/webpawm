@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"runtime/debug"
 	"strings"
 	"syscall"
 	"time"
@@ -23,6 +24,20 @@ var (
 	cfgFile string
 	version = "dev"
 )
+
+func init() {
+	if version != "dev" {
+		return // ldflags 已覆盖
+	}
+	info, ok := debug.ReadBuildInfo()
+	if !ok {
+		return
+	}
+	v := info.Main.Version
+	if v != "" && v != "(devel)" {
+		version = v
+	}
+}
 
 func main() {
 	cobra.OnInitialize(initConfig)
