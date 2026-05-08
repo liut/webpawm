@@ -356,7 +356,7 @@ func startHTTPServer(config *server.Config) {
 	}
 
 	// REST API endpoints (plain JSON, non-MCP protocol)
-	restHandler := server.NewRESTHandler(srv)
+	restHandler := server.NewRESTHandler(srv, version)
 	mux.HandleFunc("GET /api/health", restHandler.HandleHealth)
 	mux.HandleFunc("GET /api/engines", restHandler.HandleEngines)
 	mux.HandleFunc("POST /api/search", restHandler.HandleSearch)

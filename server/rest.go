@@ -20,19 +20,20 @@ const maxRequestBodySize = 1 << 20 // 1MB
 
 // RESTHandler provides plain JSON HTTP endpoints for web search and fetch.
 type RESTHandler struct {
-	srv *WebServer
+	srv     *WebServer
+	version string
 }
 
 // NewRESTHandler creates a new REST handler wrapping the given WebServer.
-func NewRESTHandler(srv *WebServer) *RESTHandler {
-	return &RESTHandler{srv: srv}
+func NewRESTHandler(srv *WebServer, version string) *RESTHandler {
+	return &RESTHandler{srv: srv, version: version}
 }
 
 // HandleHealth handles GET /api/health
 func (h *RESTHandler) HandleHealth(w http.ResponseWriter, r *http.Request) {
 	writeJSONResponse(w, http.StatusOK, map[string]string{
 		"status":  "ok",
-		"version": "1.0.0",
+		"version": h.version,
 	})
 }
 
