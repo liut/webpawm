@@ -9,7 +9,7 @@ Webpawm is an MCP (Model Context Protocol) server that provides web search capab
   - HTTP/SSE mode (via `webpawm web` command)
   - Stdio mode (via `webpawm` or `webpawm std` command)
 - **Unified Search**: Single `web_search` tool with smart defaults (multi-engine, query expansion, deduplication)
-- **Flexible Configuration**: Support for config file (~/.webpawm/config.json) and environment variables
+- **Flexible Configuration**: Support for config file (~/.config/webpawm/config.json, fallback: ~/.webpawm/config.json) and environment variables
 - **Access Logging**: Built-in slog-based HTTP access logging
 - **API Key Authentication**: Optional API key protection for HTTP endpoint (X-API-Key or Bearer token)
 
@@ -110,7 +110,12 @@ Fetch a website and return its content with HTML to Markdown conversion.
 
 ### Config File
 
-Create `~/.webpawm/config.json`:
+The default config path is `~/.config/webpawm/config.json`. If that
+file does not exist, webpawm falls back to the legacy
+`~/.webpawm/config.json`. Both locations are searched on startup.
+
+Create `~/.config/webpawm/config.json` (or use `webpawm gen-cfg` to
+write the default):
 
 ```json
 {

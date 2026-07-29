@@ -9,7 +9,7 @@ Webpawm 是一个 MCP（Model Context Protocol）服务器，提供网页搜索�
   - HTTP/SSE 模式（使用 `webpawm web` 命令）
   - Stdio 模式（使用 `webpawm` 或 `webpawm std` 命令）
 - **统一搜索**：单一的 `web_search` 工具，智能默认（多引擎、查询扩展、去重）
-- **灵活配置**：支持配置文件（~/.webpawm/config.json）和环境变量
+- **灵活配置**：支持配置文件（~/.config/webpawm/config.json，回退：~/.webpawm/config.json）和环境变量
 - **访问日志**：内置基于 slog 的 HTTP 访问日志
 - **API Key 认证**：可选的 HTTP 端点 API Key 保护（支持 X-API-Key 或 Bearer token）
 
@@ -110,7 +110,10 @@ Webpawm 提供两个 MCP 工具：
 
 ### 配置文件
 
-创建 `~/.webpawm/config.json`：
+默认配置文件路径为 `~/.config/webpawm/config.json`。如果该文件不存在，
+webpawm 会回退到旧路径 `~/.webpawm/config.json`，两个位置在启动时都会被搜索。
+
+创建 `~/.config/webpawm/config.json`（或使用 `webpawm gen-cfg` 生成默认值）：
 
 ```json
 {
