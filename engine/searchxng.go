@@ -70,7 +70,7 @@ func (s *SearchXNGEngine) Search(ctx context.Context, query SearchQuery) ([]Sear
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute search request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)

@@ -51,11 +51,11 @@ func (b *BingCNEngine) Search(ctx context.Context, query SearchQuery) ([]SearchR
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute search request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("Bing CN search failed: %d - %s", resp.StatusCode, string(body))
+		return nil, fmt.Errorf("bingcn search failed: %d - %s", resp.StatusCode, string(body))
 	}
 
 	var result struct {

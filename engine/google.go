@@ -38,7 +38,7 @@ func (g *GoogleEngine) Name() string {
 // Search performs a search using Google Custom Search API
 func (g *GoogleEngine) Search(ctx context.Context, query SearchQuery) ([]SearchResult, error) {
 	if g.apiKey == "" || g.cx == "" {
-		return nil, fmt.Errorf("Google API key and Search Engine ID are required")
+		return nil, fmt.Errorf("google API key and search engine ID are required")
 	}
 
 	params := url.Values{}
@@ -63,11 +63,11 @@ func (g *GoogleEngine) Search(ctx context.Context, query SearchQuery) ([]SearchR
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute search request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("Google search failed: %d - %s", resp.StatusCode, string(body))
+		return nil, fmt.Errorf("google search failed: %d - %s", resp.StatusCode, string(body))
 	}
 
 	var result struct {

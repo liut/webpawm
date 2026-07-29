@@ -36,7 +36,7 @@ func (b *BraveEngine) Name() string {
 // Search performs a search using Brave Search API
 func (b *BraveEngine) Search(ctx context.Context, query SearchQuery) ([]SearchResult, error) {
 	if b.apiKey == "" {
-		return nil, fmt.Errorf("Brave API key is required")
+		return nil, fmt.Errorf("brave API key is required")
 	}
 
 	searchTerm := query.Queries[0]
@@ -65,11 +65,11 @@ func (b *BraveEngine) Search(ctx context.Context, query SearchQuery) ([]SearchRe
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute search request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("Brave search failed: %d - %s", resp.StatusCode, string(body))
+		return nil, fmt.Errorf("brave search failed: %d - %s", resp.StatusCode, string(body))
 	}
 
 	body := resp.Body
@@ -78,7 +78,7 @@ func (b *BraveEngine) Search(ctx context.Context, query SearchQuery) ([]SearchRe
 		if err != nil {
 			return nil, fmt.Errorf("failed to create gzip reader: %w", err)
 		}
-		defer body.Close()
+		defer func() { _ = body.Close() }()
 	}
 
 	var result braveSearchResponse

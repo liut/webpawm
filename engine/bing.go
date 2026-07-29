@@ -36,7 +36,7 @@ func (b *BingEngine) Name() string {
 // Search performs a search using Bing Search API
 func (b *BingEngine) Search(ctx context.Context, query SearchQuery) ([]SearchResult, error) {
 	if b.apiKey == "" {
-		return nil, fmt.Errorf("Bing API key is required")
+		return nil, fmt.Errorf("bing API key is required")
 	}
 
 	params := url.Values{}
@@ -57,11 +57,11 @@ func (b *BingEngine) Search(ctx context.Context, query SearchQuery) ([]SearchRes
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute search request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("Bing search failed: %d - %s", resp.StatusCode, string(body))
+		return nil, fmt.Errorf("bing search failed: %d - %s", resp.StatusCode, string(body))
 	}
 
 	var result struct {
