@@ -169,7 +169,23 @@ func fetchURL(ctx context.Context, client *http.Client, urlStr, userAgent string
 		return
 	}
 
-	readLimit := int64(startIndex + maxLength + 1) // +1 to detect truncation
+	contentType := resp.Header.Get("content-type")
+
+	// For HTML-to-Markdown we must read enough of the page for readability to
+	// extract a complete article; otherwise it bails with
+	// "Page failed to be simplified from HTML". Truncation of the returned
+	// content to maxLength/startIndex happens in the caller.
+	//
+	// htmlReadCap is a hard ceiling on input size to avoid OOM and runaway
+	// latency. Typical article pages are 50-500 KB; 1 MiB leaves ~5x headroom
+	// for the long tail (HN threads, Wikipedia, doc sites) without paying the
+	// bandwidth / memory / latency cost of a much larger cap.
+	const htmlReadCap = 1 * 1024 * 1024 // 1 MiB
+	readLimit := int64(startIndex+maxLength) + 1
+	if !raw {
+		readLimit = htmlReadCap
+	}
+
 	b, err := io.ReadAll(io.LimitReader(resp.Body, readLimit))
 	if err != nil {
 		return
@@ -177,7 +193,6 @@ func fetchURL(ctx context.Context, client *http.Client, urlStr, userAgent string
 	content = string(b)
 	slog.Debug("fetch completed", "url", urlStr, "status", resp.StatusCode, "content_length", len(content))
 
-	contentType := resp.Header.Get("content-type")
 	pagePreview := content
 	if len(pagePreview) > 100 {
 		pagePreview = pagePreview[:100]

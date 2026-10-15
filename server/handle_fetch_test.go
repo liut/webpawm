@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -272,6 +273,49 @@ func TestHandleWebFetch_ConvertedHTML(t *testing.T) {
 
 	if result.ContentType != "markdown" {
 		t.Errorf("expected content type 'markdown', got: %s", result.ContentType)
+	}
+}
+
+// TestHandleWebFetch_LargeHTMLRegression reproduces the bug where the default
+// read limit (5000 bytes) truncated real-world HTML before readability could
+// parse it, yielding "<error>Page failed to be simplified from HTML</error>".
+// The body here is intentionally bigger than the old maxLength default to
+// ensure the parser still sees a complete document.
+func TestHandleWebFetch_LargeHTMLRegression(t *testing.T) {
+	disableFetchValidation()
+	s := testWebServer()
+
+	var body strings.Builder
+	body.WriteString(`<html><body><article><h1>IANA Example Domains</h1>`)
+	for i := 0; i < 200; i++ {
+		fmt.Fprintf(&body, `<p>Paragraph %d with enough text to push the body well past five kilobytes so the readability parser sees a complete document.</p>`, i)
+	}
+	body.WriteString(`</article></body></html>`)
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(body.String()))
+	}))
+	defer server.Close()
+
+	// Default params: raw=false, max_length defaults to 5000 in the handler.
+	result, err := s.HandleWebFetch(context.Background(), WebFetchParams{URL: server.URL})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if result.Error != "" {
+		t.Fatalf("expected no error in response, got: %s", result.Error)
+	}
+	if result.ContentType != "markdown" {
+		t.Fatalf("expected content type 'markdown', got: %s", result.ContentType)
+	}
+	if strings.Contains(result.Content, "Page failed to be simplified") {
+		t.Fatalf("readability parser failed on default-sized request; got: %s", result.Content)
+	}
+	if !strings.Contains(result.Content, "IANA Example Domains") {
+		t.Errorf("expected markdown to contain article heading, got: %q", result.Content)
 	}
 }
 
